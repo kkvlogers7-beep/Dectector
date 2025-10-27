@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fake News Detector</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background: #f2f3f5;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 30px;
+        }
+        h1 { color: #333; }
+        textarea, input {
+          width: 400px;
+          padding: 10px;
+          margin: 10px 0;
+          border: 1px solid #ccc;
+          border-radius: 5px;
+        }
+        button {
+          padding: 10px 20px;
+          cursor: pointer;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 5px;
+        }
+        button:hover {
+          background-color: #0056b3;
+        }
+        #result {
+          margin-top: 20px;
+          font-weight: bold;
+          font-size: 18px;
+          transition: color 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+<h1>📰 Fake News Detector</h1>
+
+<h3>Enter News Text:</h3>
+<textarea id="newsText" placeholder="Enter news text here..."></textarea>
+
+<h3>Or Enter News URL:</h3>
+<input type="text" id="newsUrl" placeholder="https://example.com/news" />
+
+<button onclick="verifyNews()">Check News</button>
+
+<div id="result"></div>
+
+<script>
+    async function verifyNews() {
+      const text = document.getElementById('newsText').value.trim();
+      const url = document.getElementById('newsUrl').value.trim();
+      const resultDiv = document.getElementById('result');
+
+      // Build JSON request
+      const body = {};
+      if (text) body.text = text;
+      if (url) body.url = url;
+
+      if (!text && !url) {
+        resultDiv.style.color = "black";
+        resultDiv.innerText = "⚠️ Please enter text or URL.";
+        return;
+      }
+
+      resultDiv.style.color = "black";
+      resultDiv.innerText = "⏳ Checking, please wait...";
+
+      try {
+        const response = await fetch("http://localhost:8080/api/news/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+
+        const resultText = await response.text();
+
+        // 🎨 Color logic
+        if (resultText.toLowerCase().includes("fake")) {
+          resultDiv.style.color = "red";
+        } else if (resultText.toLowerCase().includes("real")) {
+          resultDiv.style.color = "green";
+        } else {
+          resultDiv.style.color = "black";
+        }
+
+        resultDiv.innerText = resultText;
+      } catch (error) {
+        resultDiv.style.color = "red";
+        resultDiv.innerText = "❌ Error: " + error.message;
+      }
+    }
+</script>
+</body>
+</html>
